@@ -6,6 +6,9 @@
 //
 
 import UIKit
+import FSCalendar
+
+private let reuseIdentifier = "calendarTV"
 
 class ViewController: UIViewController {
 
@@ -22,17 +25,19 @@ class ViewController: UIViewController {
         return tv
     }()
     
+    
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         view.addSubview(mainView)
-        
     }
 
 
 }
 
-extension ActivitiesController: UITableViewDataSource {
+extension ViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return 2
     }
@@ -44,7 +49,7 @@ extension ActivitiesController: UITableViewDataSource {
     }
 }
 
-extension ActivitiesController: UITableViewDelegate {
+extension ViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         print(indexPath.row)
     }
