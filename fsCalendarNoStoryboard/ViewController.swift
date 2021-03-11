@@ -8,8 +8,6 @@
 import UIKit
 import FSCalendar
 
-private let reuseIdentifier = "calendarTV"
-
 class ViewController: UIViewController {
 
     private let mainView: UIView = {
@@ -21,17 +19,30 @@ class ViewController: UIViewController {
     
     private let tableView: UITableView = {
         let tv = UITableView()
-        tv.backgroundColor = .yellow
         return tv
     }()
     
-    
+    private let calendar: FSCalendar = {
+        let cal = FSCalendar()
+        return cal
+    }()
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         view.addSubview(mainView)
+        mainView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, right: view.rightAnchor, paddingLeft: 10, paddingRight: 10)
+        
+        mainView.addSubview(calendar)
+        calendar.anchor(top: mainView.topAnchor, left: mainView.leftAnchor, right: mainView.rightAnchor)
+        calendar.setHeight(height: 300)
+        
+        mainView.addSubview(tableView)
+        tableView.anchor(top: calendar.bottomAnchor, left:mainView.leftAnchor, bottom: mainView.bottomAnchor, right: mainView.rightAnchor)
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
+        tableView.delegate = self
+        tableView.dataSource = self
     }
 
 
@@ -43,7 +54,7 @@ extension ViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: reuseIdentifier, for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         cell.textLabel?.text = "Test Cell"
         return cell
     }
