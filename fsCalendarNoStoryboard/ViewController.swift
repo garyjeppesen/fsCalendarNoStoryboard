@@ -27,6 +27,12 @@ class ViewController: UIViewController {
         return cal
     }()
     
+    private let animationSwitch: UISwitch = {
+        let sw = UISwitch()
+        
+        return sw
+    }()
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -39,39 +45,48 @@ class ViewController: UIViewController {
         calendar.setHeight(height: 300)
         
         mainView.addSubview(tableView)
-        tableView.anchor(top: calendar.bottomAnchor, left:mainView.leftAnchor, bottom: mainView.bottomAnchor, right: mainView.rightAnchor)
+        tableView.anchor(top: calendar.bottomAnchor, left:mainView.leftAnchor, bottom: mainView.bottomAnchor, right: mainView.rightAnchor, paddingTop: 16)
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
         tableView.delegate = self
         tableView.dataSource = self
+        
     }
 
 
 }
 
 extension ViewController: UITableViewDataSource {
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return 2
+    }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 3
+        return [2, 5][section]
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-        switch indexPath.row {
-        case 0:
-            cell.textLabel?.text = "FSCalendarScopeMonth"
-        case 1:
-            cell.textLabel?.text = "FSCalendarScopeWeek"
-        case 2:
-            cell.textLabel?.text = "Lorem ipsum dolor sit er elit lamet"
-        default:
-            cell.textLabel?.text = ""
+        if indexPath.section == 0 {
+            let identifier = ["cell_month", "cell_week"][indexPath.row]
+            let cell = tableView.dequeueReusableCell(withIdentifier: identifier)!
+            return cell
+        } else {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "cell")!
+            return cell
         }
-        return cell
     }
 }
 
 extension ViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print(indexPath.row)
+        tableView.deselectRow(at: indexPath, animated: true)
+        if indexPath.section == 0 {
+            let scope: FSCalendarScope = (indexPath.row == 0) ? .month : .week
+            self.calendar.setScope(scope, animated: self.animationSwitch.isOn)
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 10
     }
 }
 
