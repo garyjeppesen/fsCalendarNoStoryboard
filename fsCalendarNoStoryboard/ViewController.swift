@@ -50,12 +50,21 @@ class ViewController: UIViewController {
 
 extension ViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 2
+        return 3
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-        cell.textLabel?.text = "Test Cell"
+        switch indexPath.row {
+        case 0:
+            cell.textLabel?.text = "FSCalendarScopeMonth"
+        case 1:
+            cell.textLabel?.text = "FSCalendarScopeWeek"
+        case 2:
+            cell.textLabel?.text = "Lorem ipsum dolor sit er elit lamet"
+        default:
+            cell.textLabel?.text = ""
+        }
         return cell
     }
 }
