@@ -3,6 +3,8 @@
 //  fsCalendarNoStoryboard
 //
 //  Created by Gary Jeppesen on 3/11/21.
+//  NOTE: The majority of the items in this file were not created by me,
+//  but I don't recall who I copied them from.
 //
 
 import UIKit
