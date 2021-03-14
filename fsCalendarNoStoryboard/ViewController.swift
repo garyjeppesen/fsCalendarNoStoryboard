@@ -50,12 +50,22 @@ class ViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         
+        self.calendar.scope = .week
+
     }
 
-
+    func calendar(_ calendar: FSCalendar, boundingRectWillChange bounds: CGRect, animated: Bool) {
+        self.calendar.heightConstraint?.constant = bounds.height
+        self.calendar.layoutIfNeeded()
+        self.tableView.layoutIfNeeded()
+    }
+    
 }
 
-extension ViewController: UITableViewDataSource {
+extension ViewController: UITableViewDataSource, UITableViewDelegate {
+    
+    // MARK:- UITableViewDataSource
+    
     func numberOfSections(in tableView: UITableView) -> Int {
         return 2
     }
@@ -66,27 +76,43 @@ extension ViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if indexPath.section == 0 {
-            let identifier = ["cell_month", "cell_week"][indexPath.row]
-            let cell = tableView.dequeueReusableCell(withIdentifier: identifier)!
-            return cell
+            switch indexPath.row {
+            case 0:
+                let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+                cell.textLabel?.text = "FSCalendarScopeMonth"
+                return cell
+            case 1:
+                let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+                cell.textLabel?.text = "FSCalendarScopeWeek"
+                return cell
+            default:
+                let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+                cell.textLabel?.text = "Test Cell"
+                return cell
+            }
         } else {
-            let cell = tableView.dequeueReusableCell(withIdentifier: "cell")!
+            let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+            cell.textLabel?.text = "Lorem ipsum dolor sit er elit lamet"
             return cell
-        }
-    }
-}
-
-extension ViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-        if indexPath.section == 0 {
-            let scope: FSCalendarScope = (indexPath.row == 0) ? .month : .week
-            self.calendar.setScope(scope, animated: self.animationSwitch.isOn)
         }
     }
     
+    // MARK:- UITableViewDelegate
+
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return 10
     }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print("DEBUG: Section/Row: \(indexPath.section) / \(indexPath.row)")
+        tableView.deselectRow(at: indexPath, animated: false)
+        if indexPath.section == 0 {
+            let scope: FSCalendarScope = (indexPath.row == 0) ? .month : .week
+            self.calendar.setScope(scope, animated: false)
+        }
+        print("DEBUG: heightConstraint: \(calendar.heightConstraint)")
+        print("DEBUG: bounds \(calendar.bounds.height)")
+    }
+
 }
 
