@@ -8,8 +8,22 @@
 import UIKit
 import FSCalendar
 
+private var heightConstraint: NSLayoutConstraint?
+
 class ViewController: UIViewController {
 
+    lazy var calendarMonthHeight:CGFloat = 300
+    lazy var calendarWeekHeight:CGFloat = 150
+    
+    fileprivate lazy var scopeGesture: UIPanGestureRecognizer = {
+        [unowned self] in
+        let panGesture = UIPanGestureRecognizer(target: self.calendar, action: #selector(self.calendar.handleScopeGesture(_:)))
+        panGesture.delegate = self
+        panGesture.minimumNumberOfTouches = 1
+        panGesture.maximumNumberOfTouches = 2
+        return panGesture
+    }()
+    
     private let mainView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -18,7 +32,7 @@ class ViewController: UIViewController {
     }()
     
     private let tableView: UITableView = {
-        let tv = UITableView()
+        let tv = UITableView(frame: .zero, style: .grouped)
         return tv
     }()
     
@@ -37,12 +51,15 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        heightConstraint = NSLayoutConstraint(item: calendar, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: calendarMonthHeight)
+        
+        
         view.addSubview(mainView)
         mainView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, right: view.rightAnchor, paddingLeft: 10, paddingRight: 10)
         
         mainView.addSubview(calendar)
         calendar.anchor(top: mainView.topAnchor, left: mainView.leftAnchor, right: mainView.rightAnchor)
-        calendar.setHeight(height: 300)
+        calendar.addConstraint(heightConstraint!)
         
         mainView.addSubview(tableView)
         tableView.anchor(top: calendar.bottomAnchor, left:mainView.leftAnchor, bottom: mainView.bottomAnchor, right: mainView.rightAnchor, paddingTop: 16)
@@ -50,14 +67,14 @@ class ViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         
-        self.calendar.scope = .week
+        self.view.addGestureRecognizer(self.scopeGesture)
+        self.tableView.panGestureRecognizer.require(toFail: self.scopeGesture)
+        self.calendar.scope = .month
 
     }
-
-    func calendar(_ calendar: FSCalendar, boundingRectWillChange bounds: CGRect, animated: Bool) {
-        self.calendar.heightConstraint?.constant = bounds.height
-        self.calendar.layoutIfNeeded()
-        self.tableView.layoutIfNeeded()
+    
+    deinit {
+        print("\(#function)")
     }
     
 }
@@ -107,8 +124,18 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
         print("DEBUG: Section/Row: \(indexPath.section) / \(indexPath.row)")
         tableView.deselectRow(at: indexPath, animated: false)
         if indexPath.section == 0 {
-            let scope: FSCalendarScope = (indexPath.row == 0) ? .month : .week
-            self.calendar.setScope(scope, animated: false)
+            switch indexPath.row {
+            case 0:
+                self.calendar.setScope(.month, animated: false)
+                self.calendar.heightConstraint?.constant = 300
+            case 1:
+                self.calendar.setScope(.week, animated: false)
+                self.calendar.heightConstraint?.constant = 115
+            default:
+                self.calendar.heightConstraint?.constant = 115
+
+            }
+        self.view.layoutIfNeeded()
         }
         print("DEBUG: heightConstraint: \(calendar.heightConstraint)")
         print("DEBUG: bounds \(calendar.bounds.height)")
@@ -116,3 +143,32 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
 
 }
 
+extension ViewController: UIGestureRecognizerDelegate {
+
+    // MARK:- UIGestureRecognizerDelegate
+
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        let shouldBegin = self.tableView.contentOffset.y <= -self.tableView.contentInset.top
+        if shouldBegin {
+            let velocity = self.scopeGesture.velocity(in: self.view)
+            switch self.calendar.scope {
+            case .month:
+                return velocity.y < 0
+            case .week:
+                return velocity.y > 0
+            }
+        }
+        return shouldBegin
+    }
+    
+    func calendar(_ calendar: FSCalendar, boundingRectWillChange bounds: CGRect, animated: Bool) {
+        self.calendar.heightConstraint?.constant = bounds.height
+        self.view.layoutIfNeeded()
+    }
+    
+    func calendar(_ calendar: FSCalendar, didSelect date: Date, at monthPosition: FSCalendarMonthPosition) {
+        if monthPosition == .next || monthPosition == .previous {
+            calendar.setCurrentPage(date, animated: true)
+        }
+    }
+}
