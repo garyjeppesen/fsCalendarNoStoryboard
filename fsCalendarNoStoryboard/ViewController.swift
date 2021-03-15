@@ -8,21 +8,12 @@
 import UIKit
 import FSCalendar
 
-private var heightConstraint: NSLayoutConstraint?
-
 class ViewController: UIViewController {
 
-    lazy var calendarMonthHeight:CGFloat = 300
-    lazy var calendarWeekHeight:CGFloat = 150
-    
-    fileprivate lazy var scopeGesture: UIPanGestureRecognizer = {
-        [unowned self] in
-        let panGesture = UIPanGestureRecognizer(target: self.calendar, action: #selector(self.calendar.handleScopeGesture(_:)))
-        panGesture.delegate = self
-        panGesture.minimumNumberOfTouches = 1
-        panGesture.maximumNumberOfTouches = 2
-        return panGesture
-    }()
+    var heightConstraint: NSLayoutConstraint!
+
+    lazy var calendarMonthHeight:CGFloat = 250
+    lazy var calendarWeekHeight:CGFloat = 100
     
     private let mainView: UIView = {
         let view = UIView()
@@ -41,9 +32,17 @@ class ViewController: UIViewController {
         return cal
     }()
     
+    fileprivate lazy var scopeGesture: UIPanGestureRecognizer = {
+        [unowned self] in
+        let panGesture = UIPanGestureRecognizer(target: self.calendar, action: #selector(self.calendar.handleScopeGesture(_:)))
+        panGesture.delegate = self
+        panGesture.minimumNumberOfTouches = 1
+        panGesture.maximumNumberOfTouches = 2
+        return panGesture
+    }()
+    
     private let animationSwitch: UISwitch = {
         let sw = UISwitch()
-        
         return sw
     }()
     
@@ -51,14 +50,16 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        heightConstraint = NSLayoutConstraint(item: calendar, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: calendarMonthHeight)
-        
-        
         view.addSubview(mainView)
         mainView.anchor(top: view.safeAreaLayoutGuide.topAnchor, left: view.leftAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, right: view.rightAnchor, paddingLeft: 10, paddingRight: 10)
         
+        //heightConstraint = NSLayoutConstraint(item: calendar, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: calendarMonthHeight)
+                
         mainView.addSubview(calendar)
         calendar.anchor(top: mainView.topAnchor, left: mainView.leftAnchor, right: mainView.rightAnchor)
+        
+        heightConstraint = calendar.heightAnchor.constraint(equalToConstant: calendarMonthHeight)
+        heightConstraint.isActive = true
         calendar.addConstraint(heightConstraint!)
         
         mainView.addSubview(tableView)
@@ -127,15 +128,14 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             switch indexPath.row {
             case 0:
                 self.calendar.setScope(.month, animated: false)
-                self.calendar.heightConstraint?.constant = 300
+                self.calendar.heightConstraint?.constant = calendarMonthHeight
             case 1:
                 self.calendar.setScope(.week, animated: false)
-                self.calendar.heightConstraint?.constant = 115
+                self.calendar.heightConstraint?.constant = calendarWeekHeight
             default:
-                self.calendar.heightConstraint?.constant = 115
+                self.calendar.heightConstraint?.constant = calendarWeekHeight
 
             }
-        self.view.layoutIfNeeded()
         }
         print("DEBUG: heightConstraint: \(calendar.heightConstraint)")
         print("DEBUG: bounds \(calendar.bounds.height)")
